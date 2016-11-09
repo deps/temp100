@@ -11,7 +11,9 @@ The included bash script should do the trick. Comment lime 5 if you dont want to
 This program requires that telldus-core is installed and working: http://developer.telldus.se/
 
 ## Usage
-Run the compiled binary. A file will be produced with all found sensor data.
+Run the compiled binary. A fixed width file will be produced with all found sensor data.
+
+I have a Camel route that picks it up and inserts it into a database. YMMV.
 
 ## Why?
 Because it amused me.
