@@ -1,0 +1,153 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. TEMP100.
+      *AUTHOR. deps81@gmail.com
+
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT OUTFILE ASSIGN TO FILENAME
+           ORGANIZATION IS LINE SEQUENTIAL.
+
+       DATA DIVISION.
+       FILE SECTION.
+       FD  OUTFILE.
+       01  SENSOR-REC.
+           05 SENSOR-ID.
+               10 SENSOR-PROT  PIC  X.
+               10 SENSOR-NUM   PIC  9(3).
+           05 SENSOR-TEMP      PIC +999.9.
+           05 SENSOR-HUMID     PIC  999.
+           05 SENSOR-TIMESTAMP PIC  9(10).
+
+       WORKING-STORAGE SECTION.
+       01  TMP-TEMP    PIC S999V9.
+
+       01  FILENAME.
+           05 F-PREFIX PIC X(8) VALUE 'READING_'.
+           05 F-YEAR   PIC XXXX.
+           05 F-MONTH  PIC XX.
+           05 F-DAY    PIC XX.
+           05 F_DIVIDE PIC X VALUE '_'.
+           05 F-HOUR   PIC XX.
+           05 F-MIN    PIC XX.
+           05 F-SEC    PIC XX.
+           05 F_ENDING PIC X(3) VALUE '.FW'.
+
+       01  CHECK-PROTOCOL PIC X(50).
+       01  CHECK-MODEL    PIC X(50).
+       01  CHECK-ID       PIC 999.
+       01  CHECK-TYPE     PIC 9.
+
+       01  TELLSTICK-SENSOR-VARS.
+           05 TSV-PROTOCOL     PIC X(50).
+           05 TSV-MODEL        PIC X(50).
+           05 TSV-DEVICE-ID    PIC 999.
+           05 TSV-DATA-TYPE    PIC 9.
+           05 TSV-SENSOR-VALUE PIC X(50).
+           05 TSV-SENSOR-LEN   PIC 99 VALUE 50.
+           05 TSV-TIMESTAMP    USAGE BINARY-LONG UNSIGNED.
+           05 TSV-RETURN       PIC S9(4).
+
+       01  TELLSTICK-SENSOR-ITER.
+           05 TSI-PROTOCOL     PIC X(50).
+           05 TSI-MODEL        PIC X(50).
+           05 TSI-ID           USAGE BINARY-CHAR UNSIGNED.
+           05 TSI-DATATYPES    USAGE BINARY-LONG UNSIGNED.
+           05 TSI-RETURN       USAGE BINARY-CHAR.
+
+       01  TIMESTAMP.
+           05 TS-YEAR  PIC XXXX.
+           05 TS-MONTH PIC XX.
+           05 TS-DAY   PIC XX.
+           05 TS-HOUR  PIC XX.
+           05 TS-MIN   PIC XX.
+           05 TS-SEC   PIC XX.
+
+
+       PROCEDURE DIVISION.
+           DISPLAY "CONNECTING TO TELLSTICK..."
+           CALL "telldusInit".
+
+           PERFORM 200-START-ITERATION.
+
+           CALL "telldusClose".
+           STOP RUN.
+
+
+
+       200-START-ITERATION.
+           PERFORM 300-CREATE-FILENAME.
+           OPEN OUTPUT OUTFILE.
+           DISPLAY "OUTPUT FILE: " FILENAME.
+
+           DISPLAY "ITERATING SENSORS..."
+           MOVE ZERO TO TSI-RETURN.
+           PERFORM 201-ITERATE-SENSORS 
+             UNTIL TSI-RETURN IS NOT EQUAL 0.
+
+           CLOSE OUTFILE.
+           DISPLAY "DONE".
+
+
+       201-ITERATE-SENSORS.
+           MOVE SPACES TO TELLSTICK-SENSOR-ITER.
+           CALL "getSensors" USING
+               BY REFERENCE TSI-PROTOCOL BY VALUE LENGTH OF TSI-PROTOCOL
+               BY REFERENCE TSI-MODEL BY VALUE LENGTH OF TSI-MODEL
+               BY REFERENCE TSI-ID
+               BY REFERENCE TSI-DATATYPES
+               RETURNING TSI-RETURN.
+
+           IF TSI-RETURN IS EQUAL TO 0
+      D      DISPLAY "* GOT SENSOR " TSI-ID
+             MOVE TSI-PROTOCOL TO CHECK-PROTOCOL
+             MOVE TSI-MODEL TO CHECK-MODEL
+             MOVE TSI-ID TO CHECK-ID
+             MOVE 1 TO CHECK-TYPE
+             PERFORM 210-POLLSENSOR
+
+             MOVE TSV-TIMESTAMP TO SENSOR-TIMESTAMP
+             MOVE TSI-PROTOCOL(1:1) TO SENSOR-PROT
+             MOVE CHECK-ID TO SENSOR-NUM
+             MOVE TSV-SENSOR-VALUE TO TMP-TEMP
+             MOVE TMP-TEMP TO SENSOR-TEMP
+             MOVE 2 TO CHECK-TYPE
+             PERFORM 210-POLLSENSOR
+
+             MOVE TSV-SENSOR-VALUE TO SENSOR-HUMID
+
+      D      DISPLAY SENSOR-REC
+             WRITE SENSOR-REC
+           END-IF.
+
+
+       210-POLLSENSOR.
+      *    Setup call
+           MOVE CHECK-ID TO TSV-DEVICE-ID.
+           MOVE CHECK-PROTOCOL TO TSV-PROTOCOL.
+           MOVE CHECK-MODEL TO TSV-MODEL.
+      *    1 = TEMPERATURE, 2 = HUMIDITY
+           MOVE CHECK-TYPE TO TSV-DATA-TYPE.
+
+      D    DISPLAY "* POLLING SENSOR '" FUNCTION TRIM(CHECK-PROTOCOL) 
+      D            "', '" FUNCTION TRIM (CHECK-MODEL)
+      D            "', " CHECK-ID " AS " CHECK-TYPE.
+
+           CALL "getSensorValue" USING
+               BY REFERENCE TSV-PROTOCOL
+               BY REFERENCE TSV-MODEL
+               BY VALUE TSV-DEVICE-ID
+               BY VALUE TSV-DATA-TYPE
+               BY REFERENCE TSV-SENSOR-VALUE
+               BY VALUE TSV-SENSOR-LEN
+               BY REFERENCE TSV-TIMESTAMP
+               RETURNING TSV-RETURN.
+
+       300-CREATE-FILENAME.
+           MOVE FUNCTION CURRENT-DATE TO TIMESTAMP.
+           MOVE TS-YEAR TO F-YEAR.
+           MOVE TS-MONTH TO F-MONTH.
+           MOVE TS-DAY TO F-DAY.
+           MOVE TS-HOUR TO F-HOUR.
+           MOVE TS-MIN TO F-MIN.
+           MOVE TS-SEC TO F-SEC.
