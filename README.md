@@ -4,6 +4,8 @@ I wanted to learn COBOL so I wrote a program in it that fetch temperature and hu
 This file is then picked up and processed in my home made home automation solution.
 
 ## Compiling
+This COBOL source was tested with Open COBOL on ubuntu.
+
 The included bash script should do the trick. Comment lime 5 if you dont want to add debug messages.
 
 This program requires that telldus-core is installed and working: http://developer.telldus.se/
