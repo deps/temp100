@@ -67,25 +67,29 @@
        PROCEDURE DIVISION.
            DISPLAY "CONNECTING TO TELLSTICK..."
            CALL "telldusInit".
+           DISPLAY "CONNECTING TO DATABASE..."
+           CALL "SQLinit".
 
            PERFORM 200-START-ITERATION.
 
            CALL "telldusClose".
+           CALL "SQLclose".
+
            STOP RUN.
 
 
 
        200-START-ITERATION.
-           PERFORM 300-CREATE-FILENAME.
-           OPEN OUTPUT OUTFILE.
-           DISPLAY "OUTPUT FILE: " FILENAME.
+      *    PERFORM 300-CREATE-FILENAME.
+      *    OPEN OUTPUT OUTFILE.
+      *    DISPLAY "OUTPUT FILE: " FILENAME.
 
            DISPLAY "ITERATING SENSORS..."
            MOVE ZERO TO TSI-RETURN.
            PERFORM 201-ITERATE-SENSORS 
              UNTIL TSI-RETURN IS NOT EQUAL 0.
 
-           CLOSE OUTFILE.
+      *    CLOSE OUTFILE.
            DISPLAY "DONE".
 
 
@@ -103,6 +107,7 @@
              MOVE TSI-PROTOCOL TO CHECK-PROTOCOL
              MOVE TSI-MODEL TO CHECK-MODEL
              MOVE TSI-ID TO CHECK-ID
+     
              MOVE 1 TO CHECK-TYPE
              PERFORM 210-POLLSENSOR
 
@@ -111,13 +116,15 @@
              MOVE CHECK-ID TO SENSOR-NUM
              MOVE TSV-SENSOR-VALUE TO TMP-TEMP
              MOVE TMP-TEMP TO SENSOR-TEMP
+      
              MOVE 2 TO CHECK-TYPE
              PERFORM 210-POLLSENSOR
 
              MOVE TSV-SENSOR-VALUE TO SENSOR-HUMID
 
       D      DISPLAY SENSOR-REC
-             WRITE SENSOR-REC
+             PERFORM 400-DATABASE-INSERT
+      *      WRITE SENSOR-REC
            END-IF.
 
 
@@ -126,6 +133,7 @@
            MOVE CHECK-ID TO TSV-DEVICE-ID.
            MOVE CHECK-PROTOCOL TO TSV-PROTOCOL.
            MOVE CHECK-MODEL TO TSV-MODEL.
+           MOVE "" TO TSV-SENSOR-VALUE.
       *    1 = TEMPERATURE, 2 = HUMIDITY
            MOVE CHECK-TYPE TO TSV-DATA-TYPE.
 
@@ -151,3 +159,10 @@
            MOVE TS-HOUR TO F-HOUR.
            MOVE TS-MIN TO F-MIN.
            MOVE TS-SEC TO F-SEC.
+
+       400-DATABASE-INSERT.
+           CALL "insertTemperature" USING
+              BY REFERENCE SENSOR-ID
+              BY REFERENCE SENSOR-TEMP
+              BY VALUE SENSOR-HUMID
+              BY VALUE SENSOR-TIMESTAMP. 
