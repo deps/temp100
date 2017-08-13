@@ -6,7 +6,10 @@
 MYSQL *con;
 
 void SQLinit() {
-  printf("SQL CLIENT VERSION: %s\n", mysql_get_client_info());
+
+#ifdef DEBUG
+  printf("INITIATING SQL CLIENT VERSION: %s\n", mysql_get_client_info());
+#endif
 
   con = mysql_init(NULL);
 
@@ -32,6 +35,9 @@ void SQLinit() {
 
 
 void SQLclose() {
+#ifdef DEBUG
+  printf("CLOSING DATABASE CONNECTION\n");
+#endif
   mysql_close(con);
 }
 
