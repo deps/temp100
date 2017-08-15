@@ -4,13 +4,9 @@
 
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
-       FILE-CONTROL.
-           SELECT OUTFILE ASSIGN TO FILENAME
-           ORGANIZATION IS LINE SEQUENTIAL.
-
+       
        DATA DIVISION.
-       FILE SECTION.
-       FD  OUTFILE.
+       WORKING-STORAGE SECTION.
        01  SENSOR-REC.
            05 SENSOR-ID.
                10 SENSOR-PROT  PIC  X.
@@ -19,19 +15,7 @@
            05 SENSOR-HUMID     PIC  999.
            05 SENSOR-TIMESTAMP PIC  9(10).
 
-       WORKING-STORAGE SECTION.
        01  TMP-TEMP    PIC S999V9.
-
-       01  FILENAME.
-           05 F-PREFIX PIC X(8) VALUE 'READING_'.
-           05 F-YEAR   PIC XXXX.
-           05 F-MONTH  PIC XX.
-           05 F-DAY    PIC XX.
-           05 F_DIVIDE PIC X VALUE '_'.
-           05 F-HOUR   PIC XX.
-           05 F-MIN    PIC XX.
-           05 F-SEC    PIC XX.
-           05 F_ENDING PIC X(3) VALUE '.FW'.
 
        01  CHECK-PROTOCOL PIC X(50).
        01  CHECK-MODEL    PIC X(50).
@@ -55,14 +39,6 @@
            05 TSI-DATATYPES    USAGE BINARY-LONG UNSIGNED.
            05 TSI-RETURN       USAGE BINARY-CHAR.
 
-       01  TIMESTAMP.
-           05 TS-YEAR  PIC XXXX.
-           05 TS-MONTH PIC XX.
-           05 TS-DAY   PIC XX.
-           05 TS-HOUR  PIC XX.
-           05 TS-MIN   PIC XX.
-           05 TS-SEC   PIC XX.
-
 
        PROCEDURE DIVISION.
            DISPLAY "CONNECTING TO TELLSTICK..."
@@ -80,16 +56,11 @@
 
 
        200-START-ITERATION.
-      *    PERFORM 300-CREATE-FILENAME.
-      *    OPEN OUTPUT OUTFILE.
-      *    DISPLAY "OUTPUT FILE: " FILENAME.
-
            DISPLAY "ITERATING SENSORS..."
            MOVE ZERO TO TSI-RETURN.
            PERFORM 201-ITERATE-SENSORS 
              UNTIL TSI-RETURN IS NOT EQUAL 0.
 
-      *    CLOSE OUTFILE.
            DISPLAY "DONE".
 
 
@@ -124,7 +95,6 @@
 
       D      DISPLAY SENSOR-REC
              PERFORM 400-DATABASE-INSERT
-      *      WRITE SENSOR-REC
            END-IF.
 
 
@@ -133,7 +103,7 @@
            MOVE CHECK-ID TO TSV-DEVICE-ID.
            MOVE CHECK-PROTOCOL TO TSV-PROTOCOL.
            MOVE CHECK-MODEL TO TSV-MODEL.
-           MOVE "" TO TSV-SENSOR-VALUE.
+           MOVE SPACE TO TSV-SENSOR-VALUE.
       *    1 = TEMPERATURE, 2 = HUMIDITY
            MOVE CHECK-TYPE TO TSV-DATA-TYPE.
 
@@ -150,15 +120,6 @@
                BY VALUE TSV-SENSOR-LEN
                BY REFERENCE TSV-TIMESTAMP
                RETURNING TSV-RETURN.
-
-       300-CREATE-FILENAME.
-           MOVE FUNCTION CURRENT-DATE TO TIMESTAMP.
-           MOVE TS-YEAR TO F-YEAR.
-           MOVE TS-MONTH TO F-MONTH.
-           MOVE TS-DAY TO F-DAY.
-           MOVE TS-HOUR TO F-HOUR.
-           MOVE TS-MIN TO F-MIN.
-           MOVE TS-SEC TO F-SEC.
 
        400-DATABASE-INSERT.
            CALL "insertTemperature" USING
