@@ -1,11 +1,13 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
+#include<time.h>
 
 int sensorCounter;
 
 void telldusInit() {
-	sensorCounter=4;
+    sensorCounter=4;
+    srand(time(NULL));
 }
 
 void telldusClose() {
@@ -26,7 +28,7 @@ int getRandom(int low, int high) {
 }
 
 int getSensorValue( const char *protocol, const char *model, int id, 
-                   int dataType, char *value, int len, int *timestamp ) 
+                   int dataType, char *value, int len, long *timestamp ) 
 {
 
 	if( dataType == 1 )
@@ -34,7 +36,7 @@ int getSensorValue( const char *protocol, const char *model, int id,
 	else
 		sprintf(value,"%d", getRandom(10,99));
 
-	*timestamp = 1234567890;
+	*timestamp = (unsigned long) time(NULL);
 
 
 	return 0; 
