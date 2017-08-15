@@ -13,6 +13,7 @@ Needed environment variables: MYSQL_USER, MYSQL_PASSWD, MYSQL_HOST, MYSQL_DATABA
 
 The following table structure is expected:
 
+```
 +-------------+-------------+
 | Field       | Type        |
 +-------------+-------------+
@@ -21,6 +22,7 @@ The following table structure is expected:
 | humidity    | int(11)     |
 | timestamp   | int(11)     |
 +-------------+-------------+
+```
 
 ## Why?
 Because it amused me.
