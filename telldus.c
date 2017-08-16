@@ -10,16 +10,6 @@ void telldusClose() {
     tdClose();
 }
 
-int deviceOn( int id ) {
-    printf("Mock is turning on id %d\n", id);
-    return 0;
-}
-
-int deviceOff( int id ) {
-    printf("Mock is turnong off id %d\n", id);
-    return 0;
-}
-
 int getSensorValue( const char *protocol, const char *model, int id, 
                    int dataType, char *value, int len, int *timestamp ) 
 {

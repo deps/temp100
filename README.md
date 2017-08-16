@@ -1,19 +1,32 @@
 # temp100
-I wanted to learn COBOL so I wrote a program in it that fetch temperature and humidity data from my Tellstick DUO and creates a file with it.
-
-This file is then picked up and processed in my home made home automation solution.
+I wanted to learn COBOL so I wrote a program in it that fetch temperature and humidity data from my Tellstick DUO and inserts it into a database.
 
 ## Compiling
 This COBOL source was tested with Open COBOL on ubuntu.
 
-The included bash script should do the trick. Comment lime 5 if you dont want to add debug messages.
+Run compile_mock.sh to compile a file with a mocked Tellstick interface, and some random data. 
 
-This program requires that telldus-core is installed and working: http://developer.telldus.se/
+Run compile.sh to compile and link against tellstick library. In this case, this program requires that telldus-core is installed and working: http://developer.telldus.se/
+
+Both scripts needs MySQL headers and libraries.
 
 ## Usage
-Run the compiled binary. A fixed width file will be produced with all found sensor data.
+Run the compiled binary. All known sensors will be polled and the temperature and humidity will be stored to the database.
 
-I have a Camel route that picks it up and inserts it into a database. YMMV.
+Needed environment variables: MYSQL_USER, MYSQL_PASSWD, MYSQL_HOST, MYSQL_DATABASE and MYSQL_TABLE
+
+The following table structure is expected:
+
+```
++-------------+-------------+
+| Field       | Type        |
++-------------+-------------+
+| sensorId    | varchar(10) |
+| temperature | double      |
+| humidity    | int(11)     |
+| timestamp   | int(11)     |
++-------------+-------------+
+```
 
 ## Why?
 Because it amused me.
