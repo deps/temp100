@@ -45,7 +45,7 @@ void SQLclose() {
 void insertTemperature( char *sensorId, char *temp, int humid, long timestamp ) {
   char sql[256];
   const char* table_name = getenv("MYSQL_TABLE");
-  sprintf(sql, "INSERT INTO %s (sensorId, temperature, humidity, timestamp) VALUES ('%.4s', %.6s, %d, %ld);", table_name, sensorId, temp, humid, timestamp);
+  sprintf(sql, "INSERT INTO %s (sensorId, temperature, humidity, timestamp) VALUES ('%.4s', %.6s, %d, %ld) ON DUPLICATE KEY UPDATE temperature=%.6s, humidity=%d;", table_name, sensorId, temp, humid, timestamp, temp, humid);
   if (mysql_query(con, sql)) {
     fprintf(stderr, "%s\n", mysql_error(con));
     mysql_close(con);
